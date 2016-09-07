@@ -46,13 +46,3 @@ target_cfg_t target_device_nrf52 = {
     .flash_algo     = (program_target_t *) &flash_nrf52,
     .erase_reset    = 1,
 };
-
-void set_target_device(uint32_t device)
-{
-    if (device == 0) {
-        // Target device already set to nRF51
-    }
-    else if (device == 1) {
-        target_device = target_device_nrf52;
-    }
-}

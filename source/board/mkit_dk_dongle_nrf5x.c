@@ -30,6 +30,18 @@ const char *board_id_nrf51_dk = "1100";
 const char *board_id_nrf51_dongle = "1120";
 const char *board_id_nrf52_dk = "1101";
 
+
+extern target_cfg_t target_device_nrf52;
+static void set_target_device(uint32_t device)
+{
+    if (device == 0) {
+        // Target device already set to nRF51
+    }
+    else if (device == 1) {
+        target_device = target_device_nrf52;
+    }
+}
+
 void prerun_board_config(void)
 {
     // Work around for setting the correct board id based on GPIOs
