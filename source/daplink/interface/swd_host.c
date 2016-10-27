@@ -830,11 +830,31 @@ uint8_t swd_init_debug(void)
     return 1;
 }
 
+uint8_t swd_uninit_debug(void)
+{
+    // Assume debug is powered up already
+    // Clear (CSYSPWRUPREQ | CDBGPWRUPREQ) in DP_CTRL_STAT register
+    uint32_t ctrl_stat_read;
+    
+    if (!swd_write_dp(DP_CTRL_STAT, 0x0)) {
+        return 0;
+    }
+    
+    do {
+        if (!swd_read_dp(DP_CTRL_STAT, &ctrl_stat_read)) {
+            return 0;
+        }
+    } while ((ctrl_stat_read & (CSYSPWRUPREQ | CDBGPWRUPREQ)));
+    
+    return 1;
+}
+
 __attribute__((weak)) void swd_set_target_reset(uint8_t asserted)
 {
     (asserted) ? PIN_nRESET_OUT(0) : PIN_nRESET_OUT(1);
 }
 
+// This function is currently never called, see swd_set_target_state_sw() instead
 uint8_t swd_set_target_state_hw(TARGET_RESET_STATE state)
 {
     uint32_t val;
@@ -878,6 +898,11 @@ uint8_t swd_set_target_state_hw(TARGET_RESET_STATE state)
             os_dly_wait(2);
             swd_set_target_reset(0);
             os_dly_wait(2);
+            
+            // Enable debug again because TARGET RESET might have disabled it
+            if (!swd_write_word(DBG_HCSR, DBGKEY | C_DEBUGEN)) {
+                return 0;
+            }
 
             do {
                 if (!swd_read_word(DBG_HCSR, &val)) {
